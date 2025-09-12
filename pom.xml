@@ -29,7 +29,7 @@ under the License.
 
     <groupId>org.apache.flink</groupId>
     <artifactId>flink-connector-jdbc-parent</artifactId>
-    <version>4.0-SNAPSHOT</version>
+    <version>4.0.9-2.1</version>
     <name>Flink : Connectors : JDBC : Parent</name>
     <packaging>pom</packaging>
     <inceptionYear>2022</inceptionYear>
@@ -41,6 +41,21 @@ under the License.
             scm:git:https://gitbox.apache.org/repos/asf/flink-connector-jdbc.git
         </developerConnection>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/commure/core-platform</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/commure/core-platform</url>
+        </snapshotRepository>
+
+    </distributionManagement>
 
     <modules>
         <module>flink-connector-jdbc-architecture</module>
@@ -56,7 +71,7 @@ under the License.
     </modules>
 
     <properties>
-        <flink.version>2.0.0</flink.version>
+        <flink.version>2.1.0</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <scala-library.version>2.12.7</scala-library.version>
         <jackson-bom.version>2.13.4.20221013</jackson-bom.version>

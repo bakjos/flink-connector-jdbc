@@ -19,11 +19,15 @@
 package org.apache.flink.connector.jdbc.statement;
 
 import java.math.BigDecimal;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Struct;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -63,6 +67,11 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
     @Override
     public int[] executeBatch() throws SQLException {
         return statement.executeBatch();
+    }
+
+    @Override
+    public int executeUpdate() throws SQLException {
+        return statement.executeUpdate();
     }
 
     @Override
@@ -168,6 +177,43 @@ public class FieldNamedPreparedStatementImpl implements FieldNamedPreparedStatem
         for (int index : indexMapping[fieldIndex]) {
             statement.setObject(index, x);
         }
+    }
+
+    @Override
+    public void setObject(int fieldIndex, Object x, int targetSqlType) throws SQLException {
+        for (int index : indexMapping[fieldIndex]) {
+            statement.setObject(index, x, targetSqlType);
+        }
+    }
+
+    @Override
+    public void setArray(int fieldIndex, Array x) throws SQLException {
+        for (int index : indexMapping[fieldIndex]) {
+            statement.setObject(index, x);
+            statement.setArray(index, x);
+        }
+    }
+
+    @Override
+    public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+        return statement.getConnection().createArrayOf(typeName, elements);
+
+    }
+
+    @Override
+    public Struct createStruct(String typeName, Object[] attributes)
+            throws SQLException {
+        return statement.getConnection().createStruct(typeName, attributes);
+    }
+
+    @Override
+    public Blob createBlob() throws SQLException {
+        return  statement.getConnection().createBlob();
+    }
+
+    @Override
+    public Clob createClob() throws SQLException {
+        return statement.getConnection().createClob();
     }
 
     @Override

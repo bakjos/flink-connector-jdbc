@@ -66,9 +66,10 @@ class PostgresDialectTest extends JdbcDialectTest implements PostgresTestBase {
     @Test
     void testUpsertStatement() {
         PostgresDialect dialect = new PostgresDialect();
+        dialect.setCaseSensitive(true);
         final String tableName = "tbl";
         final String[] fieldNames = {
-            "id", "name", "email", "ts", "field1", "field_2", "__field_3__"
+            "id", "name", "email", "ts", "field1", "field_2", "__field_3__", "group"
         };
         final String[] doUpdatekeyFields = {"id", "__field_3__"};
         final String[] doNothingkeyFields = {
@@ -77,9 +78,13 @@ class PostgresDialectTest extends JdbcDialectTest implements PostgresTestBase {
 
         assertThat(dialect.getUpsertStatement(tableName, fieldNames, doUpdatekeyFields).get())
                 .isEqualTo(
-                        "INSERT INTO tbl(id, name, email, ts, field1, field_2, __field_3__) VALUES (:id, :name, :email, :ts, :field1, :field_2, :__field_3__) ON CONFLICT (id, __field_3__) DO UPDATE SET name=EXCLUDED.name, email=EXCLUDED.email, ts=EXCLUDED.ts, field1=EXCLUDED.field1, field_2=EXCLUDED.field_2");
+                        "INSERT INTO tbl(id, name, email, ts, field1, field_2, __field_3__, \"group\") VALUES (:id, :name, :email, :ts, :field1, :field_2, :__field_3__, :group) ON CONFLICT (id, __field_3__) DO UPDATE SET name=EXCLUDED.name, email=EXCLUDED.email, ts=EXCLUDED.ts, field1=EXCLUDED.field1, field_2=EXCLUDED.field_2, \"group\"=EXCLUDED.\"group\"");
         assertThat(dialect.getUpsertStatement(tableName, fieldNames, doNothingkeyFields).get())
                 .isEqualTo(
-                        "INSERT INTO tbl(id, name, email, ts, field1, field_2, __field_3__) VALUES (:id, :name, :email, :ts, :field1, :field_2, :__field_3__) ON CONFLICT (id, name, email, ts, field1, field_2, __field_3__) DO NOTHING");
+                        "INSERT INTO tbl(id, name, email, ts, field1, field_2, __field_3__, \"group\") VALUES (:id, :name, :email, :ts, :field1, :field_2, :__field_3__, :group) ON CONFLICT (id, name, email, ts, field1, field_2, __field_3__) DO UPDATE SET \"group\"=EXCLUDED.\"group\"");
+
+        assertThat(dialect.getUpsertStatement("public.Test", fieldNames, doNothingkeyFields).get())
+                .isEqualTo(
+                        "INSERT INTO public.\"Test\"(id, name, email, ts, field1, field_2, __field_3__, \"group\") VALUES (:id, :name, :email, :ts, :field1, :field_2, :__field_3__, :group) ON CONFLICT (id, name, email, ts, field1, field_2, __field_3__) DO UPDATE SET \"group\"=EXCLUDED.\"group\"");
     }
 }

@@ -154,4 +154,8 @@ public interface JdbcDialect extends Serializable {
     default String appendDefaultUrlProperties(String url) {
         return url;
     }
+
+    default void setCaseSensitive(boolean caseSensitive) {
+        // do nothing by default
+    }
 }

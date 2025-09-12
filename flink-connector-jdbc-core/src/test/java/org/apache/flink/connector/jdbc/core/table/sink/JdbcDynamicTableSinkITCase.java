@@ -74,6 +74,7 @@ public abstract class JdbcDynamicTableSinkITCase extends AbstractTestBase implem
     protected final TableRow appendOutputTable = createAppendOutputTable();
     protected final TableRow batchOutputTable = createBatchOutputTable();
     protected final TableRow realOutputTable = createRealOutputTable();
+    protected final TableRow caseSensitiveOutputTable = createCaseSensitiveOutputTable();
     protected final TableRow checkpointOutputTable = createCheckpointOutputTable();
     protected final TableRow userOutputTable = createUserOutputTable();
 
@@ -103,6 +104,10 @@ public abstract class JdbcDynamicTableSinkITCase extends AbstractTestBase implem
 
     protected TableRow createRealOutputTable() {
         return tableRow("REAL_TABLE", field("real_data", dbType("REAL"), DataTypes.FLOAT()));
+    }
+
+    protected TableRow createCaseSensitiveOutputTable() {
+        return tableRow("real_Table", field("\"real_Data\"", dbType("REAL"), DataTypes.FLOAT()));
     }
 
     protected TableRow createCheckpointOutputTable() {
@@ -211,6 +216,22 @@ public abstract class JdbcDynamicTableSinkITCase extends AbstractTestBase implem
                 .await();
 
         assertThat(realOutputTable.selectAllTable(getMetadata())).containsExactly(Row.of(1.0f));
+    }
+
+    @Test
+    void testCaseSensitiveTable() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.getConfig().enableObjectReuse();
+        StreamTableEnvironment tEnv =
+                StreamTableEnvironment.create(env, EnvironmentSettings.inStreamingMode());
+
+        String tableName = "realSinkCaseSensitive";
+        tEnv.executeSql(caseSensitiveOutputTable.getCreateQueryForFlink(getMetadata(), tableName));
+
+        tEnv.executeSql(String.format("INSERT INTO %s SELECT CAST(1.0 as FLOAT)", tableName))
+                .await();
+
+        assertThat(caseSensitiveOutputTable.selectAllTable(getMetadata())).containsExactly(Row.of(1.0f));
     }
 
     @Test

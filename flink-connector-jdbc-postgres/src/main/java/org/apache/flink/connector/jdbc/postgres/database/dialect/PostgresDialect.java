@@ -28,6 +28,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /** JDBC dialect for PostgreSQL. */
@@ -45,6 +46,119 @@ public class PostgresDialect extends AbstractDialect {
     // https://www.postgresql.org/docs/12/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL
     private static final int MAX_DECIMAL_PRECISION = 1000;
     private static final int MIN_DECIMAL_PRECISION = 1;
+
+    private static final Pattern LOWERCASE_CHARACTERS = Pattern.compile("^[a-z_][a-z_0-9]*$");
+
+    private static Set<String> reservedWords = new HashSet<>(Arrays.asList(
+            "all",
+            "analyse",
+            "analyze",
+            "and",
+            "any",
+            "array",
+            "as",
+            "asc",
+            "asymmetric",
+            "authorization",
+            "binary",
+            "both",
+            "case",
+            "cast",
+            "check",
+            "collate",
+            "collation",
+            "column",
+            "concurrently",
+            "constraint",
+            "create",
+            "cross",
+            "current_catalog",
+            "current_date",
+            "current_role",
+            "current_schema",
+            "current_time",
+            "current_timestamp",
+            "current_user",
+            "default",
+            "deferrable",
+            "dense_rank",
+            "desc",
+            "distinct",
+            "do",
+            "else",
+            "end",
+            "except",
+            "false",
+            "fetch",
+            "for",
+            "foreign",
+            "freeze",
+            "from",
+            "full",
+            "grant",
+            "group",
+            "having",
+            "ilike",
+            "in",
+            "initially",
+            "inner",
+            "intersect",
+            "into",
+            "is",
+            "isnull",
+            "join",
+            "lag",
+            "last_value",
+            "lateral",
+            "leading",
+            "left",
+            "limit",
+            "like",
+            "local",
+            "localtime",
+            "localtimestamp",
+            "natural",
+            "not",
+            "notnull",
+            "null",
+            "offset",
+            "on",
+            "only",
+            "or",
+            "order",
+            "outer",
+            "over",
+            "overlaps",
+            "percent_rank",
+            "placing",
+            "primary",
+            "references",
+            "returning",
+            "right",
+            "select",
+            "session_user",
+            "similar",
+            "some",
+            "symmetric",
+            "table",
+            "tablesample",
+            "then",
+            "to",
+            "trailing",
+            "true",
+            "union",
+            "unique",
+            "user",
+            "using",
+            "variadic",
+            "verbose",
+            "when",
+            "where",
+            "window",
+            "with"
+    ));
+
+    protected boolean caseSensitive;
 
     @Override
     public PostgresDialectConverter getRowConverter(RowType rowType) {
@@ -92,9 +206,26 @@ public class PostgresDialect extends AbstractDialect {
                         + conflictAction);
     }
 
+    protected static String quoteIdentifierPart(String identifier) {
+        if (LOWERCASE_CHARACTERS.matcher(identifier).matches()) {
+            return identifier;
+        }
+        return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
+
     @Override
     public String quoteIdentifier(String identifier) {
-        return identifier;
+        if (reservedWords.contains(identifier.toLowerCase())) {
+            return "\"" + identifier + "\"";
+        }
+
+        if (!caseSensitive){
+            return identifier;
+        }
+
+        String[] split = identifier.split("\\.");
+
+        return Arrays.stream(split).map(PostgresDialect::quoteIdentifierPart).collect(Collectors.joining("."));
     }
 
     @Override
@@ -133,5 +264,10 @@ public class PostgresDialect extends AbstractDialect {
                 LogicalTypeRoot.TIMESTAMP_WITHOUT_TIME_ZONE,
                 LogicalTypeRoot.TIMESTAMP_WITH_LOCAL_TIME_ZONE,
                 LogicalTypeRoot.ARRAY);
+    }
+
+    @Override
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
     }
 }

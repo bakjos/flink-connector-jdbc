@@ -21,11 +21,15 @@ package org.apache.flink.connector.jdbc.statement;
 import org.apache.flink.annotation.PublicEvolving;
 
 import java.math.BigDecimal;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Struct;
 import java.sql.Time;
 import java.sql.Timestamp;
 
@@ -120,6 +124,20 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      * @see PreparedStatement#executeBatch()
      */
     int[] executeBatch() throws SQLException;
+
+
+    /**
+     * Executes the SQL statement in this <code>NamedPreparedStatement</code> object, which must be
+     * an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE
+     * </code> or <code>DELETE</code>; or an SQL statement that returns nothing, such as a DDL
+     * statement.
+     *
+     * @return either the row count for SQL Data Manipulation Language (DML) statements or 0 for
+     *     SQL statements that return nothing
+     * @see PreparedStatement#executeUpdate()
+     */
+    int executeUpdate() throws SQLException;
+
 
     /**
      * Sets the designated parameter to SQL <code>NULL</code>.
@@ -246,6 +264,54 @@ public interface FieldNamedPreparedStatement extends AutoCloseable {
      * @see PreparedStatement#setObject(int, Object)
      */
     void setObject(int fieldIndex, Object x) throws SQLException;
+
+    /**
+     * Sets the value of the designated parameter with the given object. The second parameter is
+     * the SQL type code defined in <code>java.sql.Types</code>.
+     *
+     * @see PreparedStatement#setArray(int, Array)
+     */
+    void setArray (int fieldIndex, Array x) throws SQLException;
+
+    /**
+     * Constructs an object that implements the <code>Array</code> interface. The elements of the
+     * array are mapped to the specified SQL type.
+     *
+     * @see Connection#createArrayOf(String, Object[])
+     */
+    Array createArrayOf(String typeName, Object[] elements) throws
+            SQLException;
+
+
+    /**
+     * Constructs an object that implements the <code>Struct</code> interface.
+     * @see Connection#createStruct(String, Object[])
+     */
+    Struct createStruct(String typeName, Object[] attributes)
+            throws SQLException;
+
+    /**
+     * Constructs an object that implements the <code>Blob</code> interface.
+        *
+     * @see Connection#createBlob()
+     */
+    Blob createBlob() throws SQLException;
+
+    /**
+     * Constructs an object that implements the <code>Clob</code> interface.
+     *
+     * @see Connection#createClob()
+     */
+    Clob createClob() throws SQLException;
+
+    /**
+     * Sets the value of the designated parameter with the given object. The second parameter
+     * <code>targetSqlType</code> is a constant from <code>java.sql.Types</code>.
+     *
+     * @see PreparedStatement#setObject(int, Object, int)
+     */
+    void setObject(int fieldIndex, Object x, int targetSqlType)
+            throws SQLException;
 
     /**
      * Releases this <code>Statement</code> object's database and JDBC resources immediately instead
